@@ -5,6 +5,12 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
 
+    <ImageView
+        android:id="@+id/articleImageView"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:contentDescription="@string/app_name" />
+
     <TextView
         android:id="@+id/articleTitle"
         android:textStyle="bold"
@@ -13,9 +19,17 @@
         android:layout_height="wrap_content" />
 
     <TextView
-        android:id="@+id/articleDescription"
+        android:id="@+id/articleAbstract"
         android:textSize="14sp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:paddingTop="4dp" />
+
+    <TextView
+        android:id="@+id/articleCategory"
+        android:textSize="10sp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="4dp" />
+
 </LinearLayout>
