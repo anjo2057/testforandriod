@@ -47,4 +47,8 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
+    implementation("com.googlecode.json-simple:json-simple:1.1.1") {
+        exclude(group = "org.hamcrest", module = "hamcrest-core")
+    }
+
 }
