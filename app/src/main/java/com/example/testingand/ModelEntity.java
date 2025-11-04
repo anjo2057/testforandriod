@@ -1,5 +1,6 @@
 package com.example.testingand;
 
+import java.io.Serializable;
 import java.util.Enumeration;
 import java.util.Hashtable;
 
@@ -7,9 +8,9 @@ import org.json.simple.JSONObject;
 
 import com.example.testingand.exceptions.ServerCommunicationError;
 
-public abstract class ModelEntity {
+public abstract class ModelEntity implements Serializable {
     protected int id;
-    protected ModelManager mm;
+    protected transient ModelManager mm;
 
     /**
      *

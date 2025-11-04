@@ -1,5 +1,6 @@
 package com.example.testingand;
 
+import java.io.Serializable;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
@@ -10,7 +11,7 @@ import org.json.simple.JSONObject;
 
 import com.example.testingand.exceptions.ServerCommunicationError;
 
-public class Article extends ModelEntity{
+public class Article extends ModelEntity implements Serializable {
 
     private String titleText;
     private String category;
@@ -166,4 +167,3 @@ public class Article extends ModelEntity{
         return res;
     }
 }
-

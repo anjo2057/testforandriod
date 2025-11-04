@@ -3,6 +3,7 @@ package com.example.testingand;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.Serializable;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
@@ -10,7 +11,7 @@ import java.util.Hashtable;
 
 import org.json.simple.JSONObject;
 
-public class Image extends ModelEntity{
+public class Image extends ModelEntity implements Serializable {
     private int order;
     private String description;
     private int idArticle;
@@ -114,7 +115,4 @@ public class Image extends ModelEntity{
     public String getImage(){
         return image;
     }
-
-
 }
-

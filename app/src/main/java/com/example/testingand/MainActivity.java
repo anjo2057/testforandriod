@@ -1,10 +1,12 @@
 package com.example.testingand;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
-import android.widget.Button;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ListView;
 
 import androidx.annotation.NonNull;
@@ -39,13 +41,20 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.fragment_first);
 
         ListView listView = findViewById(R.id.listView);
-        //Button downloadButton = findViewById(R.id.downloadButton);
 
         articleList = new ArrayList<>();
         adapter = new ArticleAdapter(this, articleList);
         listView.setAdapter(adapter);
 
-        //downloadArticles();
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Article article = articleList.get(position);
+                Intent intent = new Intent(MainActivity.this, ArticleActivity.class);
+                intent.putExtra("article", article);
+                startActivity(intent);
+            }
+        });
     }
 
     @Override

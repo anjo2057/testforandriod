@@ -25,8 +25,6 @@ public class ArticleAdapter extends BaseAdapter {
     private final ExecutorService executor = Executors.newFixedThreadPool(5);
     private final Handler handler = new Handler(Looper.getMainLooper());
 
-    // TODO: add thumbnail
-
     public ArticleAdapter(Context context, List<Article> articleList) {
         this.context = context;
         this.articleList = articleList;
@@ -57,8 +55,6 @@ public class ArticleAdapter extends BaseAdapter {
         // TODO: make clickable to new page
 
         Article article = articleList.get(position);
-
-        // TODO: add thumbnail
 
         TextView titleText = convertView.findViewById(R.id.articleTitle);
         TextView descText = convertView.findViewById(R.id.articleAbstract);
