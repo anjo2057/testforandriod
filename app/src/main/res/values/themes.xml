@@ -6,5 +6,5 @@
         <item name="android:fontFamily">@font/outfit</item>
     </style>
 
-    <style name="Theme.TestingAnd" parent="Base.Theme.TestingAnd" />
+        <style name="Theme.TestingAnd" parent="Theme.Material3.DayNight.NoActionBar"/>
 </resources>
