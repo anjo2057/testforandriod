@@ -12,6 +12,7 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
+import androidx.core.text.HtmlCompat;
 import com.example.testingand.exceptions.ServerCommunicationError;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
@@ -45,37 +46,72 @@ public class ArticleAdapter extends BaseAdapter {
         return position;
     }
 
+    static class ViewHolder {
+        ImageView ivArticle;
+        TextView titleText;
+        TextView descText;
+        TextView categoryText;
+    }
+
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
+        ViewHolder h;
         if (convertView == null) {
             convertView = LayoutInflater.from(context)
                     .inflate(R.layout.list_item_article, parent, false);
+            h = new ViewHolder();
+            h.titleText = convertView.findViewById(R.id.articleTitle);
+            h.descText = convertView.findViewById(R.id.articleAbstract);
+            h.categoryText = convertView.findViewById(R.id.articleCategory);
+            h.ivArticle = convertView.findViewById(R.id.articleImageView);
+            convertView.setTag(h);
+        } else {
+            h = (ViewHolder) convertView.getTag();
         }
 
         // TODO: make clickable to new page
 
         Article article = articleList.get(position);
 
-        TextView titleText = convertView.findViewById(R.id.articleTitle);
-        TextView descText = convertView.findViewById(R.id.articleAbstract);
-        TextView categoryText = convertView.findViewById(R.id.articleCategory);
-        ImageView ivArticle = convertView.findViewById(R.id.articleImageView);
+        h.titleText.setText(article.getTitleText());
+        h.categoryText.setText(article.getCategory());
+
+        String raw = article.getAbstractText();
+        CharSequence spanned = HtmlCompat.fromHtml(raw, HtmlCompat.FROM_HTML_MODE_LEGACY);
+        String once = spanned.toString();
+        if (once.contains("&lt;") || once.contains("&gt")) {
+            spanned = HtmlCompat.fromHtml(once, HtmlCompat.FROM_HTML_MODE_LEGACY);
+        }
+
+        h.descText.setText(spanned);
+        h.ivArticle.setImageResource(R.drawable.ic_launcher_background);
+        h.ivArticle.setTag(article);
+
+
+        //TextView titleText = convertView.findViewById(R.id.articleTitle);
+        //TextView descText = convertView.findViewById(R.id.articleAbstract);
+        //TextView categoryText = convertView.findViewById(R.id.articleCategory);
+        //ImageView ivArticle = convertView.findViewById(R.id.articleImageView);
 
 
         // Set a placeholder image while the real one loads
-        ivArticle.setImageResource(R.drawable.ic_launcher_background);
+        //ivArticle.setImageResource(R.drawable.ic_launcher_background);
 
         // Load image in the background
         executor.execute(() -> {
             try {
-                final Image image = article.getImage();
+                Image image = article.getImage();
                 if (image != null) {
-                    final String b64Image = image.getImage();
+                    String b64Image = image.getImage();
                     if (b64Image != null && !b64Image.isEmpty()) {
-                        byte[] decodedString = Base64.decode(b64Image, Base64.DEFAULT);
-                        final Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
+                        byte[] decoded = Base64.decode(b64Image, Base64.DEFAULT);
+                        Bitmap bmp = BitmapFactory.decodeByteArray(decoded, 0, decoded.length);
                         handler.post(() -> {
-                            ivArticle.setImageBitmap(decodedByte);
+                            // Kontrollera att vyn fortfarande visar samma artikel
+                            Object tag = h.ivArticle.getTag();
+                            if (tag == article) {
+                                h.ivArticle.setImageBitmap(bmp);
+                            }
                         });
                     }
                 }
@@ -84,10 +120,10 @@ public class ArticleAdapter extends BaseAdapter {
             }
         });
 
-        titleText.setText(article.getTitleText());
-        descText.setText(article.getAbstractText());
-        categoryText.setText(article.getCategory());
-
         return convertView;
     }
 }
+
+        //titleText.setText(article.getTitleText());
+        //descText.setText(article.getAbstractText());
+        //categoryText.setText(article.getCategory());
