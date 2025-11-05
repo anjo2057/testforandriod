@@ -2,14 +2,8 @@ package com.example.testingand;
 
 import java.io.Serializable;
 import java.text.ParseException;
-import java.util.Date;
 import java.util.Hashtable;
-import java.text.SimpleDateFormat;
-import java.util.Locale;
-import android.util.Log;
-
 import org.json.simple.JSONObject;
-
 import com.example.testingand.exceptions.ServerCommunicationError;
 
 public class Article extends ModelEntity implements Serializable {
