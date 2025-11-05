@@ -2,10 +2,11 @@ package com.example.testingand;
 
 import java.io.Serializable;
 import java.text.ParseException;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.Hashtable;
-import java.util.List;
+import java.text.SimpleDateFormat;
+import java.util.Locale;
+import android.util.Log;
 
 import org.json.simple.JSONObject;
 
@@ -22,10 +23,37 @@ public class Article extends ModelEntity implements Serializable {
     private Image mainImage;
     private String imageDescription;
     private String thumbnail;
+    private String updatedAtIso;
+    private String createdAtIso;
+
 
     private String parseStringFromJson(JSONObject jsonArticle, String key, String def){
         Object in = jsonArticle.getOrDefault(key,def);
         return (in==null?def:in).toString();
+    }
+
+    // Normalisera inkommande datum till "yyyy-MM-dd HH:mm"
+    private String normalizeDate(Object raw) {
+        if (raw == null) return "";
+        try {
+            String s = raw.toString().trim();
+            if (s.isEmpty() || "null".equalsIgnoreCase(s)) return "";
+            String cleaned = s.replace('T', ' ').replace('Z', ' ').trim();
+            if (cleaned.length() >= 16) cleaned = cleaned.substring(0, 16);
+            return cleaned;
+        } catch (Exception e) {
+            return raw.toString(); // sista fallback
+        }
+    }
+
+    // plockar första icke-tomma datumet från en lista av nycklar
+    private String firstNonEmptyDate(JSONObject json, String... keys) {
+        for (String k : keys) {
+            String normalized = normalizeDate(json.get(k));
+            if (normalized != null && !normalized.isEmpty())
+                return normalized;
+        }
+        return "";
     }
 
     @SuppressWarnings("unchecked")
@@ -47,6 +75,19 @@ public class Article extends ModelEntity implements Serializable {
 
             if (imageData!=null && !imageData.isEmpty())
                 mainImage = new Image(mm, 1, imageDescription, id, imageData);
+
+            String updateDateFromJson = normalizeDate(jsonArticle.get("update_date"));
+
+            updatedAtIso = !updateDateFromJson.isEmpty()
+                    ? updateDateFromJson
+                    : firstNonEmptyDate(jsonArticle,
+                    "updatedAt");
+
+            createdAtIso = firstNonEmptyDate(jsonArticle,
+                    "createdAt");
+
+            if (createdAtIso.isEmpty()) createdAtIso = updatedAtIso;
+
         }catch(Exception e){
             Logger.log(Logger.ERROR, "ERROR: Error parsing Article: from json"+jsonArticle+"\n"+e.getMessage());
             throw new IllegalArgumentException("ERROR: Error parsing Article: from json"+jsonArticle);
@@ -62,7 +103,7 @@ public class Article extends ModelEntity implements Serializable {
         this.titleText = titleText;
         bodyText = body;
         footerText = footer;
-
+        // createdAtIso = new SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault()).format(new Date());
     }
 
     public void setId(int id){
@@ -127,6 +168,26 @@ public class Article extends ModelEntity implements Serializable {
         Image img =new Image(mm, order, description, getId(), b64Image);
         mainImage= img;
         return img;
+    }
+
+    public String getUpdatedAtIso() { return updatedAtIso; }
+    public String getCreatedAtIso() { return createdAtIso; }
+
+    public String getUpdatedAtDisplay() {
+        String v = (updatedAtIso != null && !updatedAtIso.isEmpty()) ? updatedAtIso : createdAtIso;
+        return (v == null || v.isEmpty()) ? "–" : v;
+    }
+
+    public long getUpdatedAtSortKey() {
+        String iso = (updatedAtIso != null && !updatedAtIso.isEmpty()) ? updatedAtIso : createdAtIso;
+        if (iso == null || iso.isEmpty()) return 0L;
+        try {
+            String key = iso.substring(0, Math.min(16, iso.length())).replaceAll("[^0-9]", "");
+            if (key.length() == 0) return 0L;
+            return Long.parseLong(key);
+        } catch (Exception e) {
+            return 0L;
+        }
     }
 
     @Override

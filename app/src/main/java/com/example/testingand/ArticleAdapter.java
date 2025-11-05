@@ -51,6 +51,7 @@ public class ArticleAdapter extends BaseAdapter {
         TextView titleText;
         TextView descText;
         TextView categoryText;
+        TextView updatedText;
     }
 
     @Override
@@ -64,6 +65,7 @@ public class ArticleAdapter extends BaseAdapter {
             h.descText = convertView.findViewById(R.id.articleAbstract);
             h.categoryText = convertView.findViewById(R.id.articleCategory);
             h.ivArticle = convertView.findViewById(R.id.articleImageView);
+            h.updatedText = convertView.findViewById(R.id.articleUpdated);
             convertView.setTag(h);
         } else {
             h = (ViewHolder) convertView.getTag();
@@ -84,6 +86,11 @@ public class ArticleAdapter extends BaseAdapter {
         }
 
         h.descText.setText(spanned);
+
+        if (h.updatedText != null) {
+            h.updatedText.setText(article.getUpdatedAtDisplay());
+        }
+
         h.ivArticle.setImageResource(R.drawable.ic_launcher_background);
         h.ivArticle.setTag(article);
 

@@ -28,6 +28,15 @@
         android:paddingTop="4dp" />
 
     <TextView
+        android:id="@+id/articleUpdated"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="12sp"
+        android:textColor="#666666"
+        android:paddingTop="5dp"
+        android:text="Latest update: –"/>
+
+    <TextView
         android:id="@+id/articleCategory"
         android:fontFamily="@font/outfit_regular"
         android:textSize="10sp"
