@@ -60,7 +60,12 @@ public class Article extends ModelEntity implements Serializable {
             category = parseStringFromJson(jsonArticle,"category","").replaceAll("\\\\","");
             abstractText = parseStringFromJson(jsonArticle,"abstract","").replaceAll("\\\\","");
             bodyText = parseStringFromJson(jsonArticle,"body","").replaceAll("\\\\","");
-            footerText = parseStringFromJson(jsonArticle,"footer","").replaceAll("\\\\","");
+            //footerText = parseStringFromJson(jsonArticle,"footer","").replaceAll("\\\\","");
+            footerText = parseStringFromJson(
+                    jsonArticle,
+                    "subtitle",
+                    parseStringFromJson(jsonArticle,"footer","")
+            ).replaceAll("\\\\","");
 
             imageDescription = parseStringFromJson(jsonArticle,"image_description","").replaceAll("\\\\","");
             thumbnail = parseStringFromJson(jsonArticle,"thumbnail_image","").replaceAll("\\\\","");

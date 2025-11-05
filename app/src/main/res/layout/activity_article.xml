@@ -26,6 +26,14 @@
             android:textStyle="bold" />
 
         <TextView
+            android:id="@+id/article_subtitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:fontFamily="@font/outfit_regular"
+            android:textSize="20sp" />
+
+        <TextView
             android:id="@+id/article_abstract"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -40,6 +48,15 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:textSize="16sp" />
+
+        <!-- kategori + datum -->
+        <TextView
+            android:id="@+id/article_meta"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingTop="4dp"
+            android:textSize="12sp"
+            android:textColor="#666666" />
 
     </LinearLayout>
 </ScrollView>
