@@ -18,6 +18,7 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.testingand.exceptions.ServerCommunicationError;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 
@@ -36,7 +37,6 @@ public class CreateArticleActivity extends AppCompatActivity {
     private TextInputEditText inputSubtitle;
     private TextInputEditText inputAbstract;
     private TextInputEditText inputBody;
-
     private MaterialButton btnUpload;
     private MaterialButton btnCreate;
 
@@ -91,13 +91,20 @@ public class CreateArticleActivity extends AppCompatActivity {
             articleToEdit = (Article) getIntent().getSerializableExtra("article");
             if (articleToEdit != null) {
                 // Fyll i formuläret
-                setTitle("Edit Article");
+                btnCreate.setText("Update article");
                 titleEditText.setText(articleToEdit.getTitleText());
+                inputSubtitle.setText(articleToEdit.getFooterText());
                 abstractEditText.setText(articleToEdit.getAbstractText());
-                categoriesDropdown.setText(articleToEdit.getCategory(), false); // Set dropdown value
+                categoriesDropdown.setText(articleToEdit.getCategory(), false);
+                btnCreate.setOnClickListener(v -> editArticle(articleToEdit,
+                        titleEditText.getText().toString(),
+                        inputSubtitle.getText().toString(),
+                        abstractEditText.getText().toString(),
+                        inputBody.getText().toString(),
+                        categoriesDropdown.getText().toString()));
             }
         } else {
-            setTitle("Create Article");
+            btnCreate.setText("Create article");
         }
         categoriesDropdown.setText("National", false);
 
@@ -145,6 +152,21 @@ public class CreateArticleActivity extends AppCompatActivity {
         int nw = Math.round(w * scale);
         int nh = Math.round(h * scale);
         return Bitmap.createScaledBitmap(src, nw, nh, true);
+    }
+
+    private void editArticle(Article article, String title, String subtitle, String abs, String body, String category){
+       article.setTitleText(title);
+       article.setFooterText(subtitle);
+       article.setAbstractText(abs);
+       article.setBodyText(body);
+       article.setCategory(category);
+        try {
+            article.save();
+            Toast.makeText(this, "Article updated!", Toast.LENGTH_LONG).show();
+        } catch (ServerCommunicationError e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Could not save article: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        }
     }
 
     private void createArticle() {
