@@ -6,6 +6,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Handler;
 import android.os.Looper;
+import android.text.method.LinkMovementMethod;
 import android.util.Base64;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,6 +16,8 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.core.text.HtmlCompat;
 
 import com.example.testingand.exceptions.ServerCommunicationError;
 
@@ -42,51 +45,89 @@ public class ArticleAdapter extends BaseAdapter {
         notifyDataSetChanged();
     }
 
-    @Override
-    public int getCount() {
-        return articleList.size();
-    }
+    @Override public int getCount() { return articleList.size(); }
+    @Override public Object getItem(int position) { return articleList.get(position); }
+    @Override public long getItemId(int position) { return position; }
 
-    @Override
-    public Object getItem(int position) {
-        return articleList.get(position);
-    }
-
-    @Override
-    public long getItemId(int position) {
-        return position;
+    static class ViewHolder {
+        ImageView ivArticle;
+        TextView titleText;
+        TextView descText;
+        TextView categoryText;
+        TextView updatedText;
+        View adminBar;
+        Button editButton;
+        Button deleteButton;
     }
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
+        ViewHolder h;
         if (convertView == null) {
             convertView = LayoutInflater.from(context)
                     .inflate(R.layout.list_item_article, parent, false);
+            h = new ViewHolder();
+            h.titleText = convertView.findViewById(R.id.articleTitle);
+            h.descText = convertView.findViewById(R.id.articleAbstract);
+            h.categoryText = convertView.findViewById(R.id.articleCategory);
+            h.updatedText = convertView.findViewById(R.id.articleUpdated);
+            h.ivArticle = convertView.findViewById(R.id.articleImageView);
+            h.adminBar    = convertView.findViewById(R.id.adminBar);
+            h.editButton = convertView.findViewById(R.id.editButton);
+            h.deleteButton = convertView.findViewById(R.id.deleteButton);
+            convertView.setTag(h);
+        } else {
+            h = (ViewHolder) convertView.getTag();
         }
 
-        Article article = articleList.get(position);
+        final Article article = articleList.get(position);
 
-        TextView titleText = convertView.findViewById(R.id.articleTitle);
-        TextView descText = convertView.findViewById(R.id.articleAbstract);
-        TextView categoryText = convertView.findViewById(R.id.articleCategory);
-        ImageView ivArticle = convertView.findViewById(R.id.articleImageView);
-        Button editButton = convertView.findViewById(R.id.editButton);
-        Button deleteButton = convertView.findViewById(R.id.deleteButton);
+        // ====== TEXT ======
+        h.titleText.setText(article.getTitleText());
+        h.categoryText.setText(article.getCategory());
 
-        // Set a placeholder image while the real one loads
-        ivArticle.setImageResource(R.drawable.ic_launcher_background);
+        // HTML ➜ läsbar text (hanterar även dubbel-escape)
+        String raw = article.getAbstractText();
+        CharSequence spanned = HtmlCompat.fromHtml(raw, HtmlCompat.FROM_HTML_MODE_LEGACY);
+        String once = spanned.toString();
+        if (once.contains("&lt;") || once.contains("&gt;")) {
+            spanned = HtmlCompat.fromHtml(once, HtmlCompat.FROM_HTML_MODE_LEGACY);
+        }
+        h.descText.setText(spanned);
+        // Om du vill ha klickbara länkar i abstract:
+        // h.descText.setMovementMethod(LinkMovementMethod.getInstance());
 
-        // Load image in the background
+        // Visa "senast uppdaterad" (eller skapad) i list-raden
+        String when = article.getUpdatedAtDisplay(); // "yyyy-MM-dd HH:mm" eller "–"
+        if (h.updatedText != null) {
+            if (when == null || when.trim().isEmpty() || "–".equals(when)) {
+                h.updatedText.setVisibility(View.GONE); // dölj om vi inte har datum
+            } else {
+                h.updatedText.setText(when);
+                h.updatedText.setVisibility(View.VISIBLE);
+            }
+        }
+
+
+        // ====== BILD ======
+        // Placeholder direkt och tagga imageView med aktuell artikel
+        h.ivArticle.setImageResource(R.drawable.ic_launcher_background);
+        h.ivArticle.setTag(article);
+
         executor.execute(() -> {
             try {
-                final Image image = article.getImage();
+                Image image = article.getImage();
                 if (image != null) {
-                    final String b64Image = image.getImage();
+                    String b64Image = image.getImage();
                     if (b64Image != null && !b64Image.isEmpty()) {
-                        byte[] decodedString = Base64.decode(b64Image, Base64.DEFAULT);
-                        final Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
+                        byte[] decoded = Base64.decode(b64Image, Base64.DEFAULT);
+                        Bitmap bmp = BitmapFactory.decodeByteArray(decoded, 0, decoded.length);
                         handler.post(() -> {
-                            ivArticle.setImageBitmap(decodedByte);
+                            // Sätt endast om raden fortfarande visar samma artikel
+                            Object tag = h.ivArticle.getTag();
+                            if (tag == article) {
+                                h.ivArticle.setImageBitmap(bmp);
+                            }
                         });
                     }
                 }
@@ -95,16 +136,13 @@ public class ArticleAdapter extends BaseAdapter {
             }
         });
 
-        titleText.setText(article.getTitleText());
-        descText.setText(article.getAbstractText());
-        categoryText.setText(article.getCategory());
-
+        // ====== ADMIN-KNAPPAR ======
         if (isLoggedIn) {
-            editButton.setVisibility(View.VISIBLE);
-            deleteButton.setVisibility(View.VISIBLE);
+            h.adminBar.setVisibility(View.VISIBLE);
+            h.editButton.setVisibility(View.VISIBLE);
+            h.deleteButton.setVisibility(View.VISIBLE);
 
-            // Trigger delete
-            deleteButton.setOnClickListener(v -> {
+            h.deleteButton.setOnClickListener(v -> {
                 executor.execute(() -> {
                     try {
                         article.delete();
@@ -115,27 +153,26 @@ public class ArticleAdapter extends BaseAdapter {
                         });
                     } catch (ServerCommunicationError e) {
                         e.printStackTrace();
-                        handler.post(() -> {
-                            Toast.makeText(context, "Failed to delete article", Toast.LENGTH_SHORT).show();
-                        });
+                        handler.post(() ->
+                                Toast.makeText(context, "Failed to delete article", Toast.LENGTH_SHORT).show()
+                        );
                     }
                 });
             });
 
-            // Trigger edit
-            editButton.setOnClickListener(v -> {
-                // Intent lagrar info för nästa komponent så ni vet
+            h.editButton.setOnClickListener(v -> {
                 Intent intent = new Intent(context, CreateArticleActivity.class);
                 intent.putExtra("article", article);
                 context.startActivity(intent);
             });
 
         } else {
-            editButton.setVisibility(View.GONE);
-            deleteButton.setVisibility(View.GONE);
+            h.editButton.setVisibility(View.GONE);
+            h.deleteButton.setVisibility(View.GONE);
+            h.editButton.setOnClickListener(null);
+            h.deleteButton.setOnClickListener(null);
         }
 
         return convertView;
     }
-
 }

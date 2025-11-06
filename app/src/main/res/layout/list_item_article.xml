@@ -1,71 +1,110 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:padding="16dp"
-    android:descendantFocusability="blocksDescendants">
-
-    <ImageView
-        android:id="@+id/articleImageView"
-        android:layout_width="100dp"
-        android:layout_height="100dp"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentTop="true"
-        android:layout_marginEnd="16dp"
-        android:scaleType="centerCrop" />
-
-    <TextView
-        android:id="@+id/articleTitle"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_toEndOf="@+id/articleImageView"
-        android:text="Test title"
-        android:textSize="18sp"
-        android:textStyle="bold" />
-
-    <TextView
-        android:id="@+id/articleCategory"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/articleTitle"
-        android:layout_alignStart="@+id/articleTitle"
-        android:layout_marginTop="4dp"
-        android:text="Category"
-        android:textSize="14sp" />
-
-    <TextView
-        android:id="@+id/articleAbstract"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/articleCategory"
-        android:layout_alignStart="@+id/articleTitle"
-        android:layout_marginTop="8dp"
-        android:maxLines="2"
-        android:text="This is a test abstract..."
-        android:textSize="14sp" />
+    android:layout_margin="12dp"
+    app:cardCornerRadius="16dp"
+    app:cardUseCompatPadding="true"
+    app:cardElevation="4dp">
 
     <LinearLayout
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@id/articleImageView"
-        android:layout_alignParentEnd="true"
-        android:layout_marginTop="8dp">
+        android:orientation="vertical">
 
-        <Button
-            android:id="@+id/editButton"
-            android:layout_width="wrap_content"
+        <!-- === Bild med text ovanpå === -->
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="200dp">
+
+            <ImageView
+                android:id="@+id/articleImageView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop" />
+
+            <!-- Gradient för bättre kontrast -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/scrim_bottom_gradient" />
+
+            <!-- Textstack ovanpå bilden -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:gravity="bottom"
+                android:padding="16dp">
+
+                <TextView
+                    android:id="@+id/articleCategory"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="NATIONAL"
+                    android:textAllCaps="true"
+                    android:textStyle="bold"
+                    android:textSize="12sp"
+                    android:textColor="@android:color/white" />
+
+                <TextView
+                    android:id="@+id/articleTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Police launch major raid..."
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="@android:color/white" />
+
+                <TextView
+                    android:id="@+id/articleAbstract"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:maxLines="2"
+                    android:ellipsize="end"
+                    android:text="More than 800 police officers..."
+                    android:textSize="14sp"
+                    android:textColor="@android:color/white" />
+
+                <TextView
+                    android:id="@+id/articleUpdated"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="–"
+                    android:textSize="12sp"
+                    android:textStyle="italic"
+                    android:textColor="#E0E0E0"
+                    android:layout_marginTop="2dp"/>
+            </LinearLayout>
+        </FrameLayout>
+
+        <!-- === Adminknappar under bilden === -->
+        <LinearLayout
+            android:id="@+id/adminBar"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:backgroundTint="@color/button_color"
-            android:text="Edit"/>
+            android:orientation="horizontal"
+            android:gravity="end"
+            android:padding="8dp"
+            android:visibility="gone">
 
-        <Button
-            android:id="@+id/deleteButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            app:backgroundTint="@color/button_color"
-            android:text="Delete"/>
+            <Button
+                android:id="@+id/editButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Edit"
+                android:textAllCaps="false"
+                android:layout_marginEnd="8dp"
+                app:backgroundTint="@color/button_color" />
 
+            <Button
+                android:id="@+id/deleteButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Delete"
+                android:textAllCaps="false"
+                app:backgroundTint="@color/button_color" />
+        </LinearLayout>
     </LinearLayout>
-
-</RelativeLayout>
+</com.google.android.material.card.MaterialCardView>
