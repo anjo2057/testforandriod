@@ -13,7 +13,10 @@ import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
+
 import com.example.testingand.exceptions.ServerCommunicationError;
+
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -95,9 +98,28 @@ public class ArticleAdapter extends BaseAdapter {
         descText.setText(article.getAbstractText());
         categoryText.setText(article.getCategory());
 
+        // Knappar syns bara om man är inloggad
         if (isLoggedIn) {
             editButton.setVisibility(View.VISIBLE);
             deleteButton.setVisibility(View.VISIBLE);
+            // Om knapparna finns, starta ny tråd när nån vill radera
+            deleteButton.setOnClickListener(v -> {
+                executor.execute(() -> {
+                    try {
+                        article.delete();
+                        handler.post(() -> {
+                            articleList.remove(article);
+                            notifyDataSetChanged();
+                            Toast.makeText(context, "Article deleted", Toast.LENGTH_SHORT).show();
+                        });
+                    } catch (ServerCommunicationError e) {
+                        e.printStackTrace();
+                        handler.post(() -> {
+                            Toast.makeText(context, "Failed to delete article", Toast.LENGTH_SHORT).show();
+                        });
+                    }
+                });
+            });
         } else {
             editButton.setVisibility(View.GONE);
             deleteButton.setVisibility(View.GONE);
@@ -105,4 +127,5 @@ public class ArticleAdapter extends BaseAdapter {
 
         return convertView;
     }
+
 }
