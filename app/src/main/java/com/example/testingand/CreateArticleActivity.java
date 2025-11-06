@@ -95,6 +95,7 @@ public class CreateArticleActivity extends AppCompatActivity {
                 titleEditText.setText(articleToEdit.getTitleText());
                 inputSubtitle.setText(articleToEdit.getFooterText());
                 abstractEditText.setText(articleToEdit.getAbstractText());
+                inputBody.setText(articleToEdit.getBodyText());
                 categoriesDropdown.setText(articleToEdit.getCategory(), false);
                 btnCreate.setOnClickListener(v -> editArticle(articleToEdit,
                         titleEditText.getText().toString(),
