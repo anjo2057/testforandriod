@@ -46,6 +46,7 @@ dependencies {
     implementation("com.google.code.gson:gson:2.11.0")
     implementation("androidx.core:core:1.13.1")
     implementation("com.google.android.material:material:1.12.0")
+    implementation("com.android.volley:volley:1.2.1")
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)

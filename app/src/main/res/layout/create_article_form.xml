@@ -62,7 +62,7 @@
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/input_article_abstract"
                     android:layout_width="match_parent"
-                    android:layout_height="120dp"
+                    android:layout_height="100dp"
                     android:gravity="top|start"
                     android:inputType="textMultiLine"
                     android:paddingTop="8dp"/>
@@ -79,7 +79,7 @@
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/input_article_body"
                     android:layout_width="match_parent"
-                    android:layout_height="120dp"
+                    android:layout_height="100dp"
                     android:gravity="top|start"
                     android:inputType="textMultiLine"
                     android:paddingTop="8dp"/>
@@ -104,6 +104,16 @@
                     android:inputType="none"
                     android:padding="8dp"/>
             </com.google.android.material.textfield.TextInputLayout>
+
+            <ImageView
+                android:src="@drawable/uploadpicture"
+                android:id="@+id/imagePreview"
+                android:layout_width="match_parent"
+                android:layout_height="150dp"
+                android:layout_marginTop="12dp"
+                android:adjustViewBounds="true"
+                android:scaleType="centerCrop"
+                android:contentDescription="Preview" />
 
             <!-- Upload-knappen -->
             <com.google.android.material.button.MaterialButton
