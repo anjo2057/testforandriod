@@ -1,29 +1,28 @@
 package com.example.testingand;
 
-import android.annotation.SuppressLint;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
+import android.widget.EditText;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.google.android.material.textfield.TextInputLayout;
-
 public class CreateArticleActivity extends AppCompatActivity {
-    private AutoCompleteTextView categoriesDropdown;
-    private TextInputLayout categoriesLayout;
 
-    @SuppressLint("MissingInflatedId")
+    private EditText titleEditText;
+    private EditText abstractEditText;
+    private AutoCompleteTextView categoriesDropdown;
+    private Article articleToEdit;
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.create_article_form);
 
-        categoriesLayout = findViewById(R.id.categoriesLayout);
+        titleEditText = findViewById(R.id.input_article_title);
+        abstractEditText = findViewById(R.id.input_article_abstract);
         categoriesDropdown = findViewById(R.id.categoriesDropdown);
-
 
         //Dropdown innehåll
         String[] categories = new String[]{"National", "Economy", "Sports", "Technology"};
@@ -33,6 +32,19 @@ public class CreateArticleActivity extends AppCompatActivity {
                 categories
         );
         categoriesDropdown.setAdapter(ddAdapter);
-        categoriesDropdown.setText("National", false);
+
+        // Kolla om vi ska ändra en artikel istället för göra ny
+        if (getIntent().hasExtra("article")) {
+            articleToEdit = (Article) getIntent().getSerializableExtra("article");
+            if (articleToEdit != null) {
+                // Fyll i formuläret
+                setTitle("Edit Article");
+                titleEditText.setText(articleToEdit.getTitleText());
+                abstractEditText.setText(articleToEdit.getAbstractText());
+                categoriesDropdown.setText(articleToEdit.getCategory(), false); // Set dropdown value
+            }
+        } else {
+            setTitle("Create Article");
+        }
     }
 }

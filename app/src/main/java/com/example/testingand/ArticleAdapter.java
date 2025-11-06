@@ -1,6 +1,7 @@
 package com.example.testingand;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Handler;
@@ -98,11 +99,11 @@ public class ArticleAdapter extends BaseAdapter {
         descText.setText(article.getAbstractText());
         categoryText.setText(article.getCategory());
 
-        // Knappar syns bara om man är inloggad
         if (isLoggedIn) {
             editButton.setVisibility(View.VISIBLE);
             deleteButton.setVisibility(View.VISIBLE);
-            // Om knapparna finns, starta ny tråd när nån vill radera
+
+            // Trigger delete
             deleteButton.setOnClickListener(v -> {
                 executor.execute(() -> {
                     try {
@@ -120,6 +121,15 @@ public class ArticleAdapter extends BaseAdapter {
                     }
                 });
             });
+
+            // Trigger edit
+            editButton.setOnClickListener(v -> {
+                // Intent lagrar info för nästa komponent så ni vet
+                Intent intent = new Intent(context, CreateArticleActivity.class);
+                intent.putExtra("article", article);
+                context.startActivity(intent);
+            });
+
         } else {
             editButton.setVisibility(View.GONE);
             deleteButton.setVisibility(View.GONE);
