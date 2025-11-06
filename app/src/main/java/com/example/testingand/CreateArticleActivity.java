@@ -1,6 +1,6 @@
 package com.example.testingand;
 
-import android.annotation.SuppressLint;
+git statimport android.annotation.SuppressLint;
 import android.content.ContentResolver;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -9,6 +9,7 @@ import android.os.Bundle;
 import android.util.Base64;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Toast;
 
@@ -27,8 +28,10 @@ import java.util.Properties;
 
 public class CreateArticleActivity extends AppCompatActivity {
 
+    private EditText titleEditText;
+    private EditText abstractEditText;
     private AutoCompleteTextView categoriesDropdown;
-    private TextInputLayout categoriesLayout;
+    private Article articleToEdit;
 
     private TextInputEditText inputTitle;
     private TextInputEditText inputSubtitle;
@@ -61,13 +64,15 @@ public class CreateArticleActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.create_article_form);
 
-        categoriesLayout = findViewById(R.id.categoriesLayout);
+        titleEditText = findViewById(R.id.input_article_title);
+        abstractEditText = findViewById(R.id.input_article_abstract);
         categoriesDropdown = findViewById(R.id.categoriesDropdown);
         inputTitle = findViewById(R.id.input_article_title);
         inputSubtitle = findViewById(R.id.input_article_subtitle);
         inputAbstract = findViewById(R.id.input_article_abstract);
         inputBody = findViewById(R.id.input_article_body);
 
+        //Dropdown innehåll
         btnUpload = findViewById(R.id.btnUpload);
         btnCreate = findViewById(R.id.btnCreate);
 
@@ -81,6 +86,20 @@ public class CreateArticleActivity extends AppCompatActivity {
                 categories
         );
         categoriesDropdown.setAdapter(ddAdapter);
+
+        // Kolla om vi ska ändra en artikel istället för göra ny
+        if (getIntent().hasExtra("article")) {
+            articleToEdit = (Article) getIntent().getSerializableExtra("article");
+            if (articleToEdit != null) {
+                // Fyll i formuläret
+                setTitle("Edit Article");
+                titleEditText.setText(articleToEdit.getTitleText());
+                abstractEditText.setText(articleToEdit.getAbstractText());
+                categoriesDropdown.setText(articleToEdit.getCategory(), false); // Set dropdown value
+            }
+        } else {
+            setTitle("Create Article");
+        }
         categoriesDropdown.setText("National", false);
 
         btnUpload.setOnClickListener(v -> pickImageLauncher.launch("image/*"));

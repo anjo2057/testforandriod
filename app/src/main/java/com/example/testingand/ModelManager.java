@@ -405,7 +405,7 @@ public class ModelManager {
         }
     }
 
-    private void deleteArticle(int idArticle) throws ServerCommunicationError{
+    public void deleteArticle(int idArticle) throws ServerCommunicationError{
         try{
             String parameters =  "";
             String request = serviceUrl + "article/" + idArticle;

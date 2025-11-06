@@ -1,6 +1,7 @@
 package com.example.testingand;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Handler;
@@ -13,7 +14,10 @@ import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
+
 import com.example.testingand.exceptions.ServerCommunicationError;
+
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -98,6 +102,34 @@ public class ArticleAdapter extends BaseAdapter {
         if (isLoggedIn) {
             editButton.setVisibility(View.VISIBLE);
             deleteButton.setVisibility(View.VISIBLE);
+
+            // Trigger delete
+            deleteButton.setOnClickListener(v -> {
+                executor.execute(() -> {
+                    try {
+                        article.delete();
+                        handler.post(() -> {
+                            articleList.remove(article);
+                            notifyDataSetChanged();
+                            Toast.makeText(context, "Article deleted", Toast.LENGTH_SHORT).show();
+                        });
+                    } catch (ServerCommunicationError e) {
+                        e.printStackTrace();
+                        handler.post(() -> {
+                            Toast.makeText(context, "Failed to delete article", Toast.LENGTH_SHORT).show();
+                        });
+                    }
+                });
+            });
+
+            // Trigger edit
+            editButton.setOnClickListener(v -> {
+                // Intent lagrar info för nästa komponent så ni vet
+                Intent intent = new Intent(context, CreateArticleActivity.class);
+                intent.putExtra("article", article);
+                context.startActivity(intent);
+            });
+
         } else {
             editButton.setVisibility(View.GONE);
             deleteButton.setVisibility(View.GONE);
@@ -105,4 +137,5 @@ public class ArticleAdapter extends BaseAdapter {
 
         return convertView;
     }
+
 }
