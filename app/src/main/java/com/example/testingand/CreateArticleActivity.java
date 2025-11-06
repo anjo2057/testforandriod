@@ -1,6 +1,6 @@
 package com.example.testingand;
 
-git statimport android.annotation.SuppressLint;
+import android.annotation.SuppressLint;
 import android.content.ContentResolver;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -20,7 +20,6 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
-import com.google.android.material.textfield.TextInputLayout;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
