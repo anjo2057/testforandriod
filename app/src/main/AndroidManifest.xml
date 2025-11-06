@@ -27,6 +27,9 @@
         <activity
             android:name=".ArticleActivity"
             android:exported="false" />
+        <activity
+            android:name=".CreateArticleActivity"
+            android:exported="false" />
     </application>
 
 </manifest>

@@ -32,7 +32,11 @@ public class MainActivity extends AppCompatActivity {
     private final ArrayList<Article> visibleArticles = new ArrayList<>();
 
     private ListView listView;
-    private Button downloadButton;
+    private Button loginButton;
+
+    private Button createButton;
+
+    private boolean isLoggedIn = false;
 
     private TextInputLayout categoriesLayout;
     private AutoCompleteTextView categoriesDropdown;
@@ -56,7 +60,8 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.fragment_first);
 
         listView = findViewById(R.id.listView);
-        downloadButton = findViewById(R.id.downloadButton);
+        loginButton = findViewById(R.id.loginButton);
+        createButton = findViewById(R.id.createButton);
         categoriesLayout = findViewById(R.id.categoriesLayout);
         categoriesDropdown = findViewById(R.id.categoriesDropdown);
 
@@ -70,9 +75,14 @@ public class MainActivity extends AppCompatActivity {
             startActivity(intent);
         });
 
-        downloadButton.setOnClickListener(v -> {
-            setLoading(true);
-            downloadArticles();
+        loginButton.setOnClickListener(v -> {
+            isLoggedIn = !isLoggedIn;
+            updateUiForLoginState();
+        });
+
+        createButton.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, CreateArticleActivity.class);
+            startActivity(intent);
         });
 
         //Dropdown innehåll
@@ -91,6 +101,20 @@ public class MainActivity extends AppCompatActivity {
         });
 
         applyFilter("All");
+        updateUiForLoginState();
+    }
+
+    private void updateUiForLoginState() {
+        if (isLoggedIn) {
+            loginButton.setText("Log out");
+            createButton.setVisibility(View.VISIBLE);
+        } else {
+            loginButton.setText("Log in");
+            createButton.setVisibility(View.GONE);
+        }
+        if (adapter != null) {
+            adapter.setLoggedIn(isLoggedIn);
+        }
     }
 
     @Override
@@ -153,7 +177,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setLoading(boolean loading) {
-        downloadButton.setEnabled(!loading);
-        downloadButton.setText(loading ? "Loading..." : "Download Data");
+        loginButton.setEnabled(!loading);
+        if (loading) {
+            loginButton.setText("Loading...");
+        } else {
+            loginButton.setText(isLoggedIn ? "Log out" : "Log in");
+        }
     }
 }
