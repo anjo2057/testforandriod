@@ -8,10 +8,12 @@
     app:cardUseCompatPadding="true"
     app:cardElevation="4dp">
 
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:descendantFocusability="blocksDescendants">
 
         <!-- === Bild med text ovanpå === -->
         <FrameLayout
