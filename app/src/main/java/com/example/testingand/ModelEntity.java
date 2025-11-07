@@ -12,49 +12,35 @@ public abstract class ModelEntity implements Serializable {
     protected int id;
     protected transient ModelManager mm;
 
-    /**
-     *
-     * @param mm
-     */
     public ModelEntity(ModelManager mm){
         this.mm=mm;
     }
 
     /**
-     *
-     * @return the object id (-1) if not saved
+     * Sets a ModelManager for the entity.
+     * This is needed after deserialization since the ModelManager is transient.
+     * Aux for editArticle in CreateArticleActivity
+     * @param mm ModelManager instance.
      */
+    public void setModelManager(ModelManager mm) {
+        this.mm = mm;
+    }
+
     public int getId() {
         return id;
     }
 
-    /**
-     *
-     * @return hashtable of attributes of the entity (without id)
-     */
     protected abstract Hashtable<String,String> getAttributes();
 
-    /**
-     * save the entity in remote server
-     * @throws ServerCommunicationError
-     */
     public void save() throws ServerCommunicationError{
         int id = mm.save(this);
         this.id = id;
     }
 
-    /**
-     * delete the entity from remote server
-     * @throws ServerCommunicationError
-     */
     public void delete() throws ServerCommunicationError{
         mm.delete(this);
     }
 
-    /**
-     *
-     * @return json object of the entity
-     */
     @SuppressWarnings("unchecked")
     public JSONObject toJSON(){
         JSONObject jsonArticle = new JSONObject();
@@ -70,4 +56,3 @@ public abstract class ModelEntity implements Serializable {
         return jsonArticle;
     }
 }
-

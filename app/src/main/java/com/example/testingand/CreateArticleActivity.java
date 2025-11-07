@@ -7,6 +7,7 @@ import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Base64;
+import android.util.Log;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.EditText;
@@ -18,7 +19,6 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.testingand.exceptions.ServerCommunicationError;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 
@@ -42,10 +42,9 @@ public class CreateArticleActivity extends AppCompatActivity {
 
     private ImageView imgPreview;
 
-    // Bilddata
+    // Image data
     private Uri selectedImageUri = null;
-    private String selectedImageBase64 = null; // det vi skickar till API:t
-    private String selectedImageMime = "image/png";
+    private String selectedImageBase64 = null; // what we send to the API
 
     private final ActivityResultLauncher<String> pickImageLauncher =
             registerForActivityResult(new ActivityResultContracts.GetContent(), uri -> {
@@ -71,7 +70,6 @@ public class CreateArticleActivity extends AppCompatActivity {
         inputAbstract = findViewById(R.id.input_article_abstract);
         inputBody = findViewById(R.id.input_article_body);
 
-        //Dropdown innehåll
         btnUpload = findViewById(R.id.btnUpload);
         btnCreate = findViewById(R.id.btnCreate);
 
@@ -86,31 +84,36 @@ public class CreateArticleActivity extends AppCompatActivity {
         );
         categoriesDropdown.setAdapter(ddAdapter);
 
-        // Kolla om vi ska ändra en artikel istället för göra ny
+        btnUpload.setOnClickListener(v -> pickImageLauncher.launch("image/*"));
+
+        // Check if we are editing an existing article
         if (getIntent().hasExtra("article")) {
             articleToEdit = (Article) getIntent().getSerializableExtra("article");
             if (articleToEdit != null) {
-                // Fyll i formuläret
+                // EDIT MODE
+                setTitle("Edit Article");
                 btnCreate.setText("Update article");
                 titleEditText.setText(articleToEdit.getTitleText());
                 inputSubtitle.setText(articleToEdit.getFooterText());
                 abstractEditText.setText(articleToEdit.getAbstractText());
                 inputBody.setText(articleToEdit.getBodyText());
                 categoriesDropdown.setText(articleToEdit.getCategory(), false);
+                // Set the listener for editing
                 btnCreate.setOnClickListener(v -> editArticle(articleToEdit,
-                        titleEditText.getText().toString(),
-                        inputSubtitle.getText().toString(),
-                        abstractEditText.getText().toString(),
-                        inputBody.getText().toString(),
+                        safeStr(inputTitle),
+                        safeStr(inputSubtitle),
+                        safeStr(inputAbstract),
+                        safeStr(inputBody),
                         categoriesDropdown.getText().toString()));
             }
         } else {
+            // CREATE MODE
+            setTitle("Create Article");
             btnCreate.setText("Create article");
+            categoriesDropdown.setText("National", false);
+            // Set the listener for creating
+            btnCreate.setOnClickListener(v -> createArticle());
         }
-        categoriesDropdown.setText("National", false);
-
-        btnUpload.setOnClickListener(v -> pickImageLauncher.launch("image/*"));
-        btnCreate.setOnClickListener(v -> createArticle());
     }
 
     private void encodeImageToBase64(Uri uri) {
@@ -123,18 +126,14 @@ public class CreateArticleActivity extends AppCompatActivity {
                     return;
                 }
 
-                // Nedskalning
                 Bitmap scaled = scaleBitmapIfLarge(original, 1600);
 
                 ByteArrayOutputStream bos = new ByteArrayOutputStream();
                 scaled.compress(Bitmap.CompressFormat.PNG, 100, bos);
                 byte[] bytes = bos.toByteArray();
                 selectedImageBase64 = Base64.encodeToString(bytes, Base64.NO_WRAP);
-                selectedImageMime = "image/png";
-
 
                 imgPreview.setImageBitmap(scaled);
-
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -142,7 +141,6 @@ public class CreateArticleActivity extends AppCompatActivity {
         }
     }
 
-    /** Hjälpmetod för att nedskala stor bild */
     private Bitmap scaleBitmapIfLarge(Bitmap src, int maxSide) {
         int w = src.getWidth();
         int h = src.getHeight();
@@ -155,19 +153,50 @@ public class CreateArticleActivity extends AppCompatActivity {
         return Bitmap.createScaledBitmap(src, nw, nh, true);
     }
 
-    private void editArticle(Article article, String title, String subtitle, String abs, String body, String category){
-       article.setTitleText(title);
-       article.setFooterText(subtitle);
-       article.setAbstractText(abs);
-       article.setBodyText(body);
-       article.setCategory(category);
-        try {
-            article.save();
-            Toast.makeText(this, "Article updated!", Toast.LENGTH_LONG).show();
-        } catch (ServerCommunicationError e) {
-            e.printStackTrace();
-            Toast.makeText(this, "Could not save article: " + e.getMessage(), Toast.LENGTH_LONG).show();
+    private void editArticle(Article article, String title, String subtitle, String abs, String body, String category) {
+        if (title.isEmpty() || subtitle.isEmpty() || abs.isEmpty() || category.isEmpty() ||  body.isEmpty()) {
+            Toast.makeText(this, "Title, subtitle, abstract, body and category are required", Toast.LENGTH_SHORT).show();
+            return;
         }
+
+        // Ny tråd annars krasch
+        new Thread(() -> {
+            try {
+                // Återskapa ModelManager för annars nullpointer
+                Properties props = new Properties();
+                props.setProperty(ModelManager.ATTR_SERVICE_URL, "https://sanger.dia.fi.upm.es/pmd-task/");
+                props.setProperty(ModelManager.ATTR_LOGIN_USER, "DEV_TEAM_09");
+                props.setProperty(ModelManager.ATTR_LOGIN_PASS, "654321@09");
+                ModelManager mm = new ModelManager(props);
+                article.setModelManager(mm);
+
+                // Auto-fyll-i formulär
+                article.setTitleText(title);
+                article.setFooterText(subtitle);
+                article.setAbstractText(abs);
+                article.setBodyText(body);
+                article.setCategory(category);
+
+                // Bildhantering
+                if (selectedImageBase64 != null && !selectedImageBase64.isEmpty()) {
+                    article.addImage(selectedImageBase64, "main image");
+                }
+
+                // Uppdatera!!!!!
+                article.save();
+
+                // Byte av tråd annars breakar toast
+                runOnUiThread(() -> {
+                    Toast.makeText(this, "Article updated!", Toast.LENGTH_LONG).show();
+                    finish();
+                });
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                runOnUiThread(() -> Toast.makeText(this, "Could not update article: " + e.getMessage(), Toast.LENGTH_LONG).show());
+                //Log.d("CreateArticleActivity", "Could not update article: " + e.getMessage());
+            }
+        }).start();
     }
 
     private void createArticle() {
@@ -177,16 +206,8 @@ public class CreateArticleActivity extends AppCompatActivity {
         String body = safeStr(inputBody);
         String category = categoriesDropdown.getText() == null ? "National" : categoriesDropdown.getText().toString();
 
-        if (title.isEmpty()) {
-            Toast.makeText(this, "Title is required", Toast.LENGTH_SHORT).show();
-            return;
-        }
-        if (abs.isEmpty()) {
-            Toast.makeText(this, "Abstract is required", Toast.LENGTH_SHORT).show();
-            return;
-        }
-        if (body.isEmpty()) {
-            Toast.makeText(this, "Body is required", Toast.LENGTH_SHORT).show();
+        if (title.isEmpty() || abs.isEmpty() || body.isEmpty()) {
+            Toast.makeText(this, "Title, Abstract, and Body are required", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -200,10 +221,8 @@ public class CreateArticleActivity extends AppCompatActivity {
 
                 Article a = new Article(mm, category, title, abs, body, subtitle);
 
-                // Koppla bild om vald
                 if (selectedImageBase64 != null && !selectedImageBase64.isEmpty()) {
-                    Image img = new Image(mm, 1, "main image", -1, selectedImageBase64);
-                    a.setImage(img);
+                    a.addImage(selectedImageBase64, "main image");
                 }
 
                 a.save();

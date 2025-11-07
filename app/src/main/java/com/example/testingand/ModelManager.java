@@ -71,7 +71,7 @@ public class ModelManager {
             System.setProperty("https.proxyPort", proxyPort);
         }
 
-        if (ini.contains(ATTR_PROXY_USER) && ini.contains(ATTR_PROXY_PASS))	{
+        if (ini.contains(ATTR_PROXY_USER) && ini.contains(ATTR_PROXY_PASS)){
             final String proxyUser = (String)ini.get(ATTR_PROXY_USER);
             final String proxyPassword = (String)ini.get(ATTR_PROXY_PASS);
 
@@ -175,15 +175,17 @@ public class ModelManager {
     @SuppressWarnings("unchecked")
     private int readRestResultFromInsert(String res) throws ParseException, ServerCommunicationError {
         Object o = JSONValue.parseWithException(res);
-        if (o instanceof JSONObject){
-            JSONObject jsonResult = (JSONObject) JSONValue.parseWithException(res);
-            Set<String> keys = jsonResult.keySet();
-            if (keys.contains("id"))
-                return Integer.parseInt((String) jsonResult.get("id"));
-            else{
+        if (o instanceof JSONObject) {
+            // Bytte String till Object, annars ClassCastException i editArticle (CreateArticleActivity)
+            // IDn är ints det blir knas att ta in string och parsa om
+            JSONObject jsonResult = (JSONObject) o;
+            Object idObj = jsonResult.get("id");
+            if (idObj != null) {
+                return Integer.parseInt(idObj.toString());
+            } else {
                 throw new ServerCommunicationError("Error: No id in json returned");
             }
-        }else{
+        } else {
             throw new ServerCommunicationError("Error: No json returned");
         }
     }
@@ -405,7 +407,7 @@ public class ModelManager {
         }
     }
 
-    public void deleteArticle(int idArticle) throws ServerCommunicationError{
+    private void deleteArticle(int idArticle) throws ServerCommunicationError{
         try{
             String parameters =  "";
             String request = serviceUrl + "article/" + idArticle;
@@ -524,4 +526,3 @@ public class ModelManager {
         }
     }
 }
-
