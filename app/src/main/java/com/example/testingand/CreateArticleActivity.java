@@ -29,6 +29,7 @@ import com.google.android.material.textfield.TextInputEditText;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.InputStream;
+import java.util.List;
 import java.util.Properties;
 
 public class CreateArticleActivity extends AppCompatActivity {
@@ -92,9 +93,6 @@ public class CreateArticleActivity extends AppCompatActivity {
         inputSubtitle = findViewById(R.id.input_article_subtitle);
         inputAbstract = findViewById(R.id.input_article_abstract);
         inputBody = findViewById(R.id.input_article_body);
-        if (inputBody == null) {
-            Log.e("CreateArticleActivity", "inputBody is null!");
-        }
 
         btnUpload = findViewById(R.id.btnUpload);
         btnCamera = findViewById(R.id.btnCamera);
@@ -124,25 +122,57 @@ public class CreateArticleActivity extends AppCompatActivity {
 
         // Check if we are editing an existing article
         if (getIntent().hasExtra("article")) {
-            articleToEdit = (Article) getIntent().getSerializableExtra("article");
-            if (articleToEdit != null) {
-                // EDIT MODE
+            Article incompleteArticle = (Article) getIntent().getSerializableExtra("article");
+            if (incompleteArticle != null) {
                 setTitle("Edit Article");
                 btnCreate.setText("Update article");
-                inputTitle.setText(articleToEdit.getTitleText());
-                inputSubtitle.setText(articleToEdit.getFooterText());
-                inputAbstract.setText(articleToEdit.getAbstractText());
-                // TODO: varför dyker texten upp när den är hårdkodad men inte med getBodyText???
-                //inputBody.setText("THIS IS A TEST"); 
-                inputBody.setText(articleToEdit.getBodyText());
-                categoriesDropdown.setText(articleToEdit.getCategory(), false);
-                // Set the listener for editing
-                btnCreate.setOnClickListener(v -> editArticle(articleToEdit,
-                        safeStr(inputTitle),
-                        safeStr(inputSubtitle),
-                        safeStr(inputAbstract),
-                        safeStr(inputBody),
-                        categoriesDropdown.getText().toString()));
+                // Temporarily populate with what we have, so the user sees something
+                inputTitle.setText("Loading...");
+                inputSubtitle.setText("Loading...");
+                inputAbstract.setText("Loading...");
+                inputBody.setText("Loading...");
+                categoriesDropdown.setText(incompleteArticle.getCategory(), false);
+
+                // En till fkn tråd för annars hämtas inte body in rätt
+                // Tror har med serializable och deserializing att göra????
+                new Thread(() -> {
+                    try {
+                        Properties props = new Properties();
+                        props.setProperty(ModelManager.ATTR_SERVICE_URL, "https://sanger.dia.fi.upm.es/pmd-task/");
+                        props.setProperty(ModelManager.ATTR_LOGIN_USER, "DEV_TEAM_09");
+                        props.setProperty(ModelManager.ATTR_LOGIN_PASS, "654321@09");
+                        ModelManager modelManager = new ModelManager(props);
+                        
+                        // Hämta hela jävla artikeln via ID
+                        Article fullArticle = modelManager.getArticle(incompleteArticle.getId());
+
+                        if (fullArticle != null) {
+                            articleToEdit = fullArticle;
+                            Article finalArticleToEdit = articleToEdit;
+                            runOnUiThread(() -> {
+                                // Lägg till alla fält från omhämtade artikeln
+                                inputTitle.setText(finalArticleToEdit.getTitleText());
+                                inputSubtitle.setText(finalArticleToEdit.getFooterText());
+                                inputAbstract.setText(finalArticleToEdit.getAbstractText());
+                                inputBody.setText(finalArticleToEdit.getBodyText());
+                                categoriesDropdown.setText(finalArticleToEdit.getCategory(), false);
+                                
+                                btnCreate.setOnClickListener(v -> editArticle(finalArticleToEdit,
+                                        safeStr(inputTitle),
+                                        safeStr(inputSubtitle),
+                                        safeStr(inputAbstract),
+                                        safeStr(inputBody),
+                                        categoriesDropdown.getText().toString()));
+                            });
+                        } else {
+                            runOnUiThread(() -> Toast.makeText(CreateArticleActivity.this, "Could not load article details.", Toast.LENGTH_SHORT).show());
+                        }
+
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        runOnUiThread(() -> Toast.makeText(CreateArticleActivity.this, "Error loading article: " + e.getMessage(), Toast.LENGTH_LONG).show());
+                    }
+                }).start();
             }
         } else {
             // CREATE MODE
