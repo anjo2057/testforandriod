@@ -34,10 +34,11 @@ import java.util.Properties;
 public class CreateArticleActivity extends AppCompatActivity {
 
     private EditText titleEditText;
+    private EditText subtitleEditText;
     private EditText abstractEditText;
+    private EditText bodyEditText;
     private AutoCompleteTextView categoriesDropdown;
     private Article articleToEdit;
-
     private TextInputEditText inputTitle;
     private TextInputEditText inputSubtitle;
     private TextInputEditText inputAbstract;
@@ -92,7 +93,9 @@ public class CreateArticleActivity extends AppCompatActivity {
         setContentView(R.layout.create_article_form);
 
         titleEditText = findViewById(R.id.input_article_title);
+        subtitleEditText = findViewById(R.id.input_article_subtitle);
         abstractEditText = findViewById(R.id.input_article_abstract);
+        bodyEditText = findViewById(R.id.input_article_body);
         categoriesDropdown = findViewById(R.id.categoriesDropdown);
         inputTitle = findViewById(R.id.input_article_title);
         inputSubtitle = findViewById(R.id.input_article_subtitle);

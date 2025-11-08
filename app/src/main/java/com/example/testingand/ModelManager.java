@@ -36,8 +36,8 @@ public class ModelManager {
 
     private boolean requireSelfSigned = false;
 
-    public static final String ATTR_LOGIN_USER = "username";
-    public static final String ATTR_LOGIN_PASS = "password";
+    public static final String ATTR_LOGIN_USER = "DEVTEAM_09";
+    public static final String ATTR_LOGIN_PASS = "654321@09";
     public static final String ATTR_SERVICE_URL = "service_url";
     public static final String ATTR_REQUIRE_SELF_CERT = "require_self_signed_cert";
     public static final String ATTR_PROXY_HOST = "";

@@ -51,10 +51,11 @@ public class ArticleActivity extends AppCompatActivity {
 
         String category = nz(article.getCategory());
         String when = nz(article.getUpdatedAtDisplay());
+        String who = nz(String.valueOf(article.getIdUser()));
         String metaText = "";
         if (!category.isEmpty()) metaText += category;
         if (!when.isEmpty() && !when.equals("–")) {
-            metaText += (metaText.isEmpty() ? "" : " • ") + "Latest update: " + when;
+            metaText += (metaText.isEmpty() ? "" : " • ") + "Latest update: " + when + " by user with ID #" + who;
         }
         if (metaText.isEmpty()) {
             meta.setVisibility(View.GONE);
