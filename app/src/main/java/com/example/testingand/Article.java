@@ -56,21 +56,20 @@ public class Article extends ModelEntity implements Serializable {
         try{
             id = Integer.parseInt(jsonArticle.get("id").toString());
             idUser = Integer.parseInt(parseStringFromJson(jsonArticle,"id_user","0"));
-            titleText = parseStringFromJson(jsonArticle,"title","").replaceAll("\\\\","");
-            category = parseStringFromJson(jsonArticle,"category","").replaceAll("\\\\","");
-            abstractText = parseStringFromJson(jsonArticle,"abstract","").replaceAll("\\\\","");
-            bodyText = parseStringFromJson(jsonArticle,"body","").replaceAll("\\\\","");
-            //footerText = parseStringFromJson(jsonArticle,"footer","").replaceAll("\\\\","");
+            titleText = parseStringFromJson(jsonArticle,"title","");
+            category = parseStringFromJson(jsonArticle,"category","");
+            abstractText = parseStringFromJson(jsonArticle,"abstract","");
+            bodyText = parseStringFromJson(jsonArticle,"body","");
             footerText = parseStringFromJson(
                     jsonArticle,
                     "subtitle",
                     parseStringFromJson(jsonArticle,"footer","")
-            ).replaceAll("\\\\","");
+            );
 
-            imageDescription = parseStringFromJson(jsonArticle,"image_description","").replaceAll("\\\\","");
-            thumbnail = parseStringFromJson(jsonArticle,"thumbnail_image","").replaceAll("\\\\","");
+            imageDescription = parseStringFromJson(jsonArticle,"image_description","");
+            thumbnail = parseStringFromJson(jsonArticle,"thumbnail_image","");
 
-            String imageData = parseStringFromJson(jsonArticle,"image_data","").replaceAll("\\\\","");
+            String imageData = parseStringFromJson(jsonArticle,"image_data","");
 
             if (imageData!=null && !imageData.isEmpty())
                 mainImage = new Image(mm, 1, imageDescription, id, imageData);

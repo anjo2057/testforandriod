@@ -32,11 +32,6 @@ import java.io.InputStream;
 import java.util.Properties;
 
 public class CreateArticleActivity extends AppCompatActivity {
-
-    private EditText titleEditText;
-    private EditText subtitleEditText;
-    private EditText abstractEditText;
-    private EditText bodyEditText;
     private AutoCompleteTextView categoriesDropdown;
     private Article articleToEdit;
     private TextInputEditText inputTitle;
@@ -91,16 +86,15 @@ public class CreateArticleActivity extends AppCompatActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.create_article_form);
-
-        titleEditText = findViewById(R.id.input_article_title);
-        subtitleEditText = findViewById(R.id.input_article_subtitle);
-        abstractEditText = findViewById(R.id.input_article_abstract);
-        bodyEditText = findViewById(R.id.input_article_body);
+        
         categoriesDropdown = findViewById(R.id.categoriesDropdown);
         inputTitle = findViewById(R.id.input_article_title);
         inputSubtitle = findViewById(R.id.input_article_subtitle);
         inputAbstract = findViewById(R.id.input_article_abstract);
         inputBody = findViewById(R.id.input_article_body);
+        if (inputBody == null) {
+            Log.e("CreateArticleActivity", "inputBody is null!");
+        }
 
         btnUpload = findViewById(R.id.btnUpload);
         btnCamera = findViewById(R.id.btnCamera);
@@ -135,9 +129,11 @@ public class CreateArticleActivity extends AppCompatActivity {
                 // EDIT MODE
                 setTitle("Edit Article");
                 btnCreate.setText("Update article");
-                titleEditText.setText(articleToEdit.getTitleText());
+                inputTitle.setText(articleToEdit.getTitleText());
                 inputSubtitle.setText(articleToEdit.getFooterText());
-                abstractEditText.setText(articleToEdit.getAbstractText());
+                inputAbstract.setText(articleToEdit.getAbstractText());
+                // TODO: varför dyker texten upp när den är hårdkodad men inte med getBodyText???
+                //inputBody.setText("THIS IS A TEST"); 
                 inputBody.setText(articleToEdit.getBodyText());
                 categoriesDropdown.setText(articleToEdit.getCategory(), false);
                 // Set the listener for editing
