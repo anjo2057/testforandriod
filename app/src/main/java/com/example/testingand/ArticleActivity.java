@@ -2,7 +2,6 @@ package com.example.testingand;
 
 
 import android.Manifest;
-import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
@@ -41,8 +40,6 @@ import java.util.concurrent.Executors;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.InputStream;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.Properties;
 
 
@@ -70,7 +67,6 @@ public class ArticleActivity extends AppCompatActivity {
     private File cameraTempFile = null;
     private Uri cameraTempUri = null;
 
-
     private final ActivityResultLauncher<String> pickImageLauncher =
             registerForActivityResult(new ActivityResultContracts.GetContent(), uri -> {
                 if (uri == null) {
@@ -81,7 +77,6 @@ public class ArticleActivity extends AppCompatActivity {
                 encodeImageToBase64(uri);
                 saveImageOnArticle();
             });
-
 
     private final ActivityResultLauncher<Uri> takePictureLauncher =
             registerForActivityResult(new ActivityResultContracts.TakePicture(), success -> {
@@ -99,9 +94,6 @@ public class ArticleActivity extends AppCompatActivity {
                 else Toast.makeText(this, "Camera permission denied", Toast.LENGTH_SHORT).show();
             });
 
-
-
-
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -117,10 +109,7 @@ public class ArticleActivity extends AppCompatActivity {
         btnAlterImage = findViewById(R.id.btnCreate); // din knapp i layouten
 
 
-
-
         article = (Article) getIntent().getSerializableExtra("article");
-
         title.setText(nz(article.getTitleText()));
 
         String category = nz(article.getCategory());
@@ -175,6 +164,7 @@ public class ArticleActivity extends AppCompatActivity {
             }
         });
         btnAlterImage.setOnClickListener(v -> showImageSourceDialog());
+        fetchFullArticleAndRender();
     }
 
     private void showImageSourceDialog () {
@@ -208,7 +198,7 @@ public class ArticleActivity extends AppCompatActivity {
         }
     }
 
-    // -------- Bild → Base64 + preview --------
+    //Preview Bild
     private void encodeImageToBase64(Uri uri) {
         try {
             ContentResolver cr = getContentResolver();
@@ -222,7 +212,6 @@ public class ArticleActivity extends AppCompatActivity {
                 Bitmap scaled = scaleBitmapIfLarge(original, 1600);
 
                 ByteArrayOutputStream bos = new ByteArrayOutputStream();
-                // JNG 100% för mindre storlek
                 scaled.compress(Bitmap.CompressFormat.PNG, 100, bos);
                 byte[] bytes = bos.toByteArray();
                 selectedImageBase64 = Base64.encodeToString(bytes, Base64.NO_WRAP);
@@ -247,27 +236,21 @@ public class ArticleActivity extends AppCompatActivity {
     }
 
 
-    // -------- Spara bilden på artikeln --------
+    // Spara bilden på artikeln
     private void saveImageOnArticle() {
         if (article == null) return;
         if (selectedImageBase64 == null || selectedImageBase64.isEmpty()) return;
 
         executor.execute(() -> {
             try {
-                // Skapa (eller återanvänd) ModelManager – samma som i CreateArticleActivity
                 Properties props = new Properties();
                 props.setProperty(ModelManager.ATTR_SERVICE_URL, "https://sanger.dia.fi.upm.es/pmd-task/");
                 props.setProperty(ModelManager.ATTR_LOGIN_USER, "DEV_TEAM_09");
                 props.setProperty(ModelManager.ATTR_LOGIN_PASS, "654321@09");
                 ModelManager mm = new ModelManager(props);
 
-                // Se till att artikeln har en ModelManager kopplad
                 article.setModelManager(mm);
-
-                // Lägg till/ersätt bild
                 article.addImage(selectedImageBase64, "altered image");
-
-                // Spara artikeln
                 article.save();
 
                 handler.post(() -> {
@@ -278,6 +261,76 @@ public class ArticleActivity extends AppCompatActivity {
                 handler.post(() ->
                         Toast.makeText(this, "Could not update image: " + e.getMessage(), Toast.LENGTH_LONG).show()
                 );
+            }
+        });
+    }
+
+    private void fetchFullArticleAndRender() {
+        executor.execute(()-> {
+            try {
+                Properties props = new Properties();
+                props.setProperty(ModelManager.ATTR_SERVICE_URL, "https://sanger.dia.fi.upm.es/pmd-task/");
+                props.setProperty(ModelManager.ATTR_LOGIN_USER, "DEV_TEAM_09");
+                props.setProperty(ModelManager.ATTR_LOGIN_PASS, "654321@09");
+                ModelManager mm = new ModelManager(props);
+
+                Article fresh = mm.getArticle(article.getId());
+                fresh.setModelManager(mm);
+                article = fresh;
+
+                handler.post(() -> renderArticle(article));
+            } catch (Exception e) {
+                e.printStackTrace();
+                handler.post(() -> renderArticle(article));
+            }
+        });
+    }
+
+    private void renderArticle (Article a) {
+        title.setText(a.getTitleText());
+        String category = nz(a.getCategory());
+        String when = nz(a.getUpdatedAtDisplay());
+        String who = nz(String.valueOf(a.getIdUser()));
+        String metaText = "";
+        if (!category.isEmpty()) metaText += category;
+        if (!when.isEmpty() && !when.equals("–")) {
+            metaText += (metaText.isEmpty() ? "" : " • ") + "Latest update: " + when + " by user with ID #" + who;
+        }
+        if (metaText.isEmpty()) {
+            meta.setVisibility(View.GONE);
+        } else {
+            meta.setText(metaText);
+            meta.setVisibility(View.VISIBLE);
+        }
+
+        String foot = nz(a.getFooterText());
+        subtitle.setVisibility(foot.isEmpty() ? View.GONE : View.VISIBLE);
+        subtitle.setText(foot);
+
+        // Abstract
+        String absRaw = nz(a.getAbstractText());
+        articleAbstract.setVisibility(absRaw.isEmpty() ? View.GONE : View.VISIBLE);
+        articleAbstract.setText(toPlainText(absRaw));
+
+        // BODY — nu från full endpoint
+        body.setText(HtmlCompat.fromHtml(nz(a.getBodyText()), HtmlCompat.FROM_HTML_MODE_LEGACY));
+        body.setMovementMethod(LinkMovementMethod.getInstance());
+
+        // Bild
+        imageView.setImageResource(R.drawable.ic_launcher_background);
+        executor.execute(() -> {
+            try {
+                final Image image = a.getImage();
+                if (image != null) {
+                    final String b64Image = image.getImage();
+                    if (b64Image != null && !b64Image.isEmpty()) {
+                        byte[] decoded = Base64.decode(b64Image, Base64.DEFAULT);
+                        final Bitmap bmp = BitmapFactory.decodeByteArray(decoded, 0, decoded.length);
+                        handler.post(() -> imageView.setImageBitmap(bmp));
+                    }
+                }
+            } catch (ServerCommunicationError e) {
+                e.printStackTrace();
             }
         });
     }
