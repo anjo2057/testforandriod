@@ -32,7 +32,7 @@ public class ArticleAdapter extends BaseAdapter {
 
     private boolean isLoggedIn = false;
 
-    private final ExecutorService executor = Executors.newFixedThreadPool(5);
+    private final ExecutorService executor = Executors.newFixedThreadPool(10);
     private final Handler handler = new Handler(Looper.getMainLooper());
 
     public ArticleAdapter(Context context, List<Article> articleList) {
@@ -131,7 +131,7 @@ public class ArticleAdapter extends BaseAdapter {
                         });
                     }
                 }
-            } catch (ServerCommunicationError e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         });

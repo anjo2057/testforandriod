@@ -151,12 +151,45 @@ public class Article extends ModelEntity implements Serializable {
     }
 
     public Image getImage() throws ServerCommunicationError {
-        Image image = mainImage;
-        if (mainImage==null && thumbnail!=null && !thumbnail.isEmpty()){
-            image = new Image(mm,1,"",getId(),thumbnail);
+    // If we don't have the main image and the article has an ID, it might be an incomplete object.
+    // Let's try to fetch the full details from the server. This is done here so that the UI
+    // doesn't have to worry about this logic. It just asks for the image.
+    if (mainImage == null && id > 0) {
+        try {
+            // The ModelManager's getArticle should return the complete article data,
+            // including the full-size image data if it exists.
+            Article fullArticle = mm.getArticle(this.id);
+            if (fullArticle != null) {
+                // If the fetched article has a main image, we'll cache it in our current object.
+                if (fullArticle.mainImage != null) {
+                    this.mainImage = fullArticle.mainImage;
+                }
+                // Also cache the body text if we didn't have it, making the object more complete.
+                if (this.bodyText == null || this.bodyText.isEmpty()) {
+                    this.bodyText = fullArticle.bodyText;
+                }
+            }
+        } catch (Exception e) {
+            // If the network call fails, we log it.
+            // The method will then proceed to the thumbnail fallback.
+            Logger.log(Logger.ERROR, "Failed to fetch full article details for image: " + e.getMessage());
         }
-        return image;
     }
+
+    // Return the main image if we have it now (either from the start or after fetching).
+    if (mainImage != null) {
+        return mainImage;
+    }
+
+    // If there's still no main image, but we have a thumbnail, we'll use that as a fallback.
+    // This assumes the 'thumbnail' field contains a Base64-encoded image string.
+    if (thumbnail != null && !thumbnail.isEmpty()) {
+        return new Image(mm, 1, "", getId(), thumbnail);
+    }
+
+    // If there's no main image and no thumbnail, we can't provide an image.
+    return null;
+}
     public void setImage(Image image) {
         this.mainImage = image;
     }
