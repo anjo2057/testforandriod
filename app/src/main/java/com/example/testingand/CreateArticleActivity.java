@@ -1,7 +1,9 @@
 package com.example.testingand;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.ContentResolver;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
@@ -18,11 +20,14 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
+import androidx.core.content.FileProvider;
 
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.InputStream;
 import java.util.Properties;
 
@@ -38,6 +43,7 @@ public class CreateArticleActivity extends AppCompatActivity {
     private TextInputEditText inputAbstract;
     private TextInputEditText inputBody;
     private MaterialButton btnUpload;
+    private MaterialButton btnCamera;
     private MaterialButton btnCreate;
 
     private ImageView imgPreview;
@@ -45,6 +51,9 @@ public class CreateArticleActivity extends AppCompatActivity {
     // Image data
     private Uri selectedImageUri = null;
     private String selectedImageBase64 = null; // what we send to the API
+
+    private File cameraTempFile = null;
+    private Uri cameraTempUri = null;
 
     private final ActivityResultLauncher<String> pickImageLauncher =
             registerForActivityResult(new ActivityResultContracts.GetContent(), uri -> {
@@ -55,6 +64,26 @@ public class CreateArticleActivity extends AppCompatActivity {
                 selectedImageUri = uri;
                 encodeImageToBase64(uri);
             });
+
+    private final ActivityResultLauncher<Uri> takePictureLauncher =
+            registerForActivityResult(new ActivityResultContracts.TakePicture(), success -> {
+                if (success && cameraTempUri != null) {
+                    selectedImageUri = cameraTempUri;
+                    encodeImageToBase64(cameraTempUri);
+                } else {
+                    Toast.makeText(this, "No photo captured", Toast.LENGTH_SHORT).show();
+                }
+            });
+
+    private final ActivityResultLauncher<String> requestCameraPermissionLauncher =
+            registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
+                if (isGranted) {
+                    launchCameraNow();
+                } else {
+                    Toast.makeText(this, "Camera permission denied", Toast.LENGTH_SHORT).show();
+                }
+            });
+
 
     @SuppressLint("MissingInflatedId")
     @Override
@@ -71,6 +100,7 @@ public class CreateArticleActivity extends AppCompatActivity {
         inputBody = findViewById(R.id.input_article_body);
 
         btnUpload = findViewById(R.id.btnUpload);
+        btnCamera = findViewById(R.id.btnCamera);
         btnCreate = findViewById(R.id.btnCreate);
 
         imgPreview = findViewById(R.id.imagePreview);
@@ -85,6 +115,15 @@ public class CreateArticleActivity extends AppCompatActivity {
         categoriesDropdown.setAdapter(ddAdapter);
 
         btnUpload.setOnClickListener(v -> pickImageLauncher.launch("image/*"));
+
+        btnCamera.setOnClickListener(v -> {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+            == PackageManager.PERMISSION_GRANTED) {
+                launchCameraNow();
+            } else {
+                requestCameraPermissionLauncher.launch(Manifest.permission.CAMERA);
+            }
+        });
 
         // Check if we are editing an existing article
         if (getIntent().hasExtra("article")) {
@@ -113,6 +152,19 @@ public class CreateArticleActivity extends AppCompatActivity {
             categoriesDropdown.setText("National", false);
             // Set the listener for creating
             btnCreate.setOnClickListener(v -> createArticle());
+        }
+    }
+
+    private void launchCameraNow () {
+        try {
+            cameraTempFile = File.createTempFile("camera_", ".jpg", getCacheDir());
+            String authority = getPackageName() + ".fileprovider";
+            cameraTempUri = FileProvider.getUriForFile(this, authority, cameraTempFile);
+
+            takePictureLauncher.launch(cameraTempUri);
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Could not open camera: " + e.getMessage(), Toast.LENGTH_LONG).show();
         }
     }
 

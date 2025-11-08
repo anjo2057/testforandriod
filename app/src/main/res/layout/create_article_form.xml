@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView  xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto">
@@ -128,6 +128,15 @@
 <!--            app:icon="@drawable/ic_upload"-->
 
             <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnCamera"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:text="Take photo"
+                android:layout_marginTop="12dp"
+                app:iconGravity="textStart"
+                app:cornerRadius="12dp"/>
+
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnCreate"
                 android:layout_width="match_parent"
                 android:layout_height="48dp"
@@ -139,4 +148,4 @@
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 
-</RelativeLayout>
+</ScrollView>
